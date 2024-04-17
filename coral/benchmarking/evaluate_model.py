@@ -46,8 +46,8 @@ def get_outputs(fout, dir_out):
 
 
 def evaluate(df_data, df_out, f_inst_score, f_agg_scores, f_final_scores, dir_score,
-             eval_type='relation', sem_scoring=False):
-    metrics = Metrics(tokenizer='default', is_gpt_scorer=sem_scoring)
+             eval_type='relation'):
+    metrics = Metrics(tokenizer='default')
     scores = list()
 
     # one output row contains one section of a note
@@ -106,12 +106,6 @@ def evaluate(df_data, df_out, f_inst_score, f_agg_scores, f_final_scores, dir_sc
                         'em_recall': em_r,
                         'em_f1': em_f1,
                     }
-
-                    if sem_scoring:
-                        sem_p, sem_r, sem_f1 = metrics.compute_multiset_semantic_p_r_f1(cur_outs, cur_annots)
-                        cur_scores['sem_prec'] = sem_p
-                        cur_scores['sem_recall'] = sem_r
-                        cur_scores['sem_f1'] = sem_f1
 
                     scores.append(cur_scores)
 
