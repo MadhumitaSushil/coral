@@ -46,8 +46,8 @@ def get_outputs(fout, dir_out):
 
 
 def evaluate(df_data, df_out, f_inst_score, f_agg_scores, f_final_scores, dir_score,
-             eval_type='relation', sem_scoring=False):
-    metrics = Metrics(tokenizer='default', is_gpt_scorer=sem_scoring)
+             eval_type='relation'):
+    metrics = Metrics(tokenizer='default')
     scores = list()
 
     # one output row contains one section of a note
@@ -107,42 +107,25 @@ def evaluate(df_data, df_out, f_inst_score, f_agg_scores, f_final_scores, dir_sc
                         'em_f1': em_f1,
                     }
 
-                    if sem_scoring:
-                        sem_p, sem_r, sem_f1 = metrics.compute_multiset_semantic_p_r_f1(cur_outs, cur_annots)
-                        cur_scores['sem_prec'] = sem_p
-                        cur_scores['sem_recall'] = sem_r
-                        cur_scores['sem_f1'] = sem_f1
-
                     scores.append(cur_scores)
 
     scores = pd.DataFrame(scores)
     print(scores)
     scores.to_csv(os.path.join(dir_score, f_inst_score), index=False)
-    aggregate_scores(f_inst_score, f_agg_scores, f_final_scores, dir_out, eval_type, sem_scoring)
+    aggregate_scores(f_inst_score, f_agg_scores, f_final_scores, dir_score, eval_type)
 
 
-def aggregate_scores(f_inst_scores, f_agg_scores, f_final_scores, dir_out, eval_type, sem_scoring):
+def aggregate_scores(f_inst_scores, f_agg_scores, f_final_scores, dir_out, eval_type):
     df = pd.read_csv(os.path.join(dir_out, f_inst_scores))
     # pd.set_option('display.max_rows', None)
     # pd.set_option('display.max_columns', None)
 
-    if not sem_scoring:
-        agg_df = df.groupby(['task', 'model', 'subrelation']).agg(mean_bleu4=('bleu4', 'mean'),
-                                 mean_rouge1=('rouge1', 'mean'),
-                                 mean_em_prec=('em_prec', 'mean'),
-                                 mean_em_recall=('em_recall', 'mean'),
-                                 mean_em_f1=('em_f1', 'mean'),
-                                 )
-    else:
-        agg_df = df.groupby(['task', 'model']).agg(mean_bleu4=('bleu4', 'mean'),
-                                                   mean_rouge1=('rouge1', 'mean'),
-                                                   mean_em_prec=('em_prec', 'mean'),
-                                                   mean_em_recall=('em_recall', 'mean'),
-                                                   mean_em_f1=('em_f1', 'mean'),
-                                                   mean_sem_prec=('sem_prec', 'mean'),
-                                                   mean_sem_recall=('sem_recall', 'mean'),
-                                                   mean_sem_f1=('sem_f1', 'mean'),
-                                                   )
+    agg_df = df.groupby(['task', 'model', 'subrelation']).agg(mean_bleu4=('bleu4', 'mean'),
+                             mean_rouge1=('rouge1', 'mean'),
+                             mean_em_prec=('em_prec', 'mean'),
+                             mean_em_recall=('em_recall', 'mean'),
+                             mean_em_f1=('em_f1', 'mean'),
+                             )
 
     agg_df.to_csv(os.path.join(dir_out, f_agg_scores), index=True)
     agg_df = agg_df.reset_index()
