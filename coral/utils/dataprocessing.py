@@ -24,8 +24,11 @@ def read_data(fdata, dir_data, get_annots=False):
     print("Loading data")
     df = pd.read_csv(os.path.join(os.path.realpath(dir_data), fdata))
     df = df.rename(columns={'inference_subtype': 'task'})
+
     if not get_annots:
         df = df.drop(columns=['annotation_set'])
+
+    df = df.astype({'doc_idx': 'str'})
 
     df.drop_duplicates(inplace=True)
     print("Completed data loading")
